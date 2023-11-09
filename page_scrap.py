@@ -7,8 +7,8 @@ import base64
 from dotenv import load_dotenv
 from Crypto.Hash import HMAC, SHA512
 from inky.auto import auto
-import sys
-from PIL import Image, ImageFont, ImageDraw
+# import sys
+# from PIL import Image, ImageFont, ImageDraw
 
 load_dotenv()
 
