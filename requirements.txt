@@ -4,4 +4,5 @@ beautifulsoup4==4.9.3
 selenium==4.15.2
 undetected-chromedriver==3.5.3
 pycryptodome==3.10.1
-
+inky[rpi,example-depends]==1.5.0
+Pillow==10.1.0
