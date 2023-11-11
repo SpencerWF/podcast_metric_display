@@ -7,78 +7,88 @@ import base64
 from dotenv import load_dotenv
 from Crypto.Hash import HMAC, SHA512
 from inky.auto import auto
-# import sys
-# from PIL import Image, ImageFont, ImageDraw
+from inky import InkyPHAT
+from PIL import Image, ImageFont, ImageDraw
 
 load_dotenv()
+PATH = os.path.dirname(__file__)
 
-# USERNAME = os.getenv("JUSTCAST_USERNAME")
-# PASSWORD = os.getenv("JUSTCAST_PASSWORD")
+if(os.getenv("ENV") == 'dev'):
+    from inky.mock import InkyMockPHAT as mock
+    import schedule
 
-# payload = {
-#     "email": USERNAME,
-#     "password": PASSWORD
-# }
-
-# # response = s.get(validate_url)
-# # print(response.status_code)
-
-# # response = s.get(metrics_url)
-# # print(response.status_code)
-
-# # soup = bs(response.content, "html.parser")
-# # print(soup.prettify())
-# # protected_content = soup.find(attrs={"id": "pageName"})
-# # print(protected_content)
-
-# # page = urlopen(test_url4)
-
-# # html_bytes = page.read()
-# # html = html_bytes.decode("utf-8")
-# # print(html)
-
-# import time,requests
-# import hashlib,hmac,base64
-
-# api_key = os.getenv("ICONOMI_API_KEY")
-# api_secret = os.getenv("ICONOMI_SECRET_KEY")
-
-# defaut_encoding = "utf8"
-
-# uri = "https://api.iconomi.com"
-# requestPath = "/v1/user/balance"
-# api_url_target = iconomi_uri+request_path # https://api.iconomi.com/v1/user/balance
-# method="GET"
-# body=""
-# icn_timestamp = int(1000.*time.time())
-
-# message = (str(ICN_TIMESTAMP) + method.upper() + request_path + body).encode()
-# signature_digest = HMAC.new(ICN_SECRET.encode(), ICN_SIGN, SHA512).digest() #here digest is byte
-# b64_signature_digest= base64.b64encode(h.digest()).decode()
-
-# headers_sign= {
-#     "ICN-API-KEY":ICN_API_KEY,
-#     "ICN-SIGN":encoded,
-#     "ICN-TIMESTAMP":str(ICN_TIMESTAMP)
-# }
 
 # s=requests.session()
 # res = s.get(iconomi_url,headers=headers,timeout=3, verify=True).content
 # print (res)
 
-# test_url = "https://dashboard.justcast.com/signin"
-# test_url3 = "https://dashboard.justcast.com/dashboard"
-# test_url4 = "http://testphp.vulnweb.com/userinfo.php"
-# login_url = "https://justcastbe-migration.onrender.com/auth/sign_in"
-# metrics_url = "https://dashboard.justcast.com/shows/40816/metrics"
-# episode_url = "https://dashboard.justcast.com/shows/40816/metrics_episode_breakdown"
-# validate_url = "https://justcastbe-migration.onrender.com/auth/validate_token"
 # op3_url = "https://op3.dev/api/1/shows/" + os.getenv("PODCAST_GUID") + "?token=" + os.getenv("OP3_BEARER_TOKEN")
+
 class InkyDisplay:
-    if os.getenv("ENV") == 'prod':
-        inky_display = auto(ask_user=True, verbose=True)
-    else:
-        print("No display found.")
+
+    def __init__(self):
+        if os.getenv("ENV") == 'prod':
+            self.inky_display = auto(ask_user=True, verbose=True)
+        else:
+            print("No display found")
+            if(os.getenv("ENV") == 'dev'):
+                print("Mocking display")
+                self.inky_display = mock(colour="yellow")
+                self.inky_display.resolution = (250, 122)
+                self.inky_display.set_border(self.inky_display.WHITE)
+                self.inky_display.show()
+
+        self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
+        self.create_mask([0, 1, 2])
+
+    def push_image(self):
+        self.inky_display.set_image(self.img)
+        self.inky_display.show()
+
+    def create_mask(self, mask=[0, 1, 2]):
+        """Create a transparency mask.
+
+        Takes a paletized source image and converts it into a mask
+        permitting all the colours supported by Inky pHAT (0, 1, 2)
+        or an optional list of allowed colours.
+        :param mask: Optional list of Inky pHAT colours to allow.
+        """
+        source = Image.open(os.path.join(PATH, "resources/calendar.png"))
+        # source = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
+        self.mask_image = Image.new("1", source.size)
+        w, h = source.size
+        for x in range(w):
+            for y in range(h):
+                p = source.getpixel((x, y))
+                if p in mask:
+                    self.mask_image.putpixel((x, y), 255)
+
+    def print_digit(self, position, digit, colour):
+        """Print a single digit using the sprite sheet.
+
+        Each number is grabbed from the masked sprite sheet,
+        and then used as a mask to paste the desired colour
+        onto Inky pHATs image buffer.
+        """
+        o_x, o_y = position
+
+        num_margin = 2
+        num_width = 6
+        num_height = 7
+
+        s_y = 11
+        s_x = num_margin + (digit * (num_width + num_margin))
+
+        sprite = self.mask_image.crop((s_x, s_y, s_x + num_width, s_y + num_height))
+
+        self.img.paste(colour, (o_x, o_y), sprite)
+
+
+    def print_number(self, position, number, colour):
+        """Print a number using the sprite sheet."""
+        for digit in str(number):
+            self.print_digit(position, int(digit), colour)
+            position = (position[0] + 8, position[1])
 
 
 class IconomiWallet:
@@ -154,13 +164,33 @@ class IconomiWallet:
         
         # return self.wallet.balance
 
+
+iconomi_wallet = IconomiWallet()
+display = InkyDisplay()
+size = (250, 122)
+
+def create_image():
+    display.print_number((10, 10), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
+
+def update_display():
+    iconomi_wallet.get_iconomi_balance()
+    create_image()
+    display.push_image()
+
+def mock_loop():
+    schedule.every(1).minutes.do(update_display)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 def test():
     pass
 
 def main():
-    iconomi_wallet = IconomiWallet()
     if os.getenv("ENV") == 'dev':
-        print(iconomi_wallet.wallet['balance'])
+        mock_loop()
     elif os.getenv("ENV") == 'prod':
         print(iconomi_wallet.wallet['balance'])
     else:
