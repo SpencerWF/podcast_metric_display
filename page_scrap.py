@@ -192,6 +192,7 @@ def main():
     if os.getenv("ENV") == 'dev':
         mock_loop()
     elif os.getenv("ENV") == 'prod':
+        update_display()
         print(iconomi_wallet.wallet['balance'])
     else:
         print('Environment not set.')
