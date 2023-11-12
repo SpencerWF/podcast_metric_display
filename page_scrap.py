@@ -78,7 +78,7 @@ class InkyDisplay:
         num_width = 14
         num_height = 16
 
-        s_y = 0
+        s_y = 2
         s_x = num_margin + (digit * (num_width + num_margin))
 
         sprite = self.mask_image.crop((s_x, s_y, s_x + num_width, s_y + num_height))
