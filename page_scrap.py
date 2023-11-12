@@ -29,7 +29,7 @@ class InkyDisplay:
     def __init__(self):
         if os.getenv("ENV") == 'prod':
             self.inky_display = auto(ask_user=True, verbose=True)
-            print("Found display: {}".format(self.inky_display.resolution)
+            print("Found display: {}".format(self.inky_display.resolution))
         else:
             print("No display found")
             if(os.getenv("ENV") == 'dev'):
