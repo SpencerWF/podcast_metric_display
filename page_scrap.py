@@ -40,6 +40,7 @@ class InkyDisplay:
                 self.inky_display.show()
 
         self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
+        self.img = Image.open(os.path.join(PATH, "resources/background.png"))
         self.create_mask([0, 1, 2])
 
     def push_image(self):
@@ -174,7 +175,7 @@ display = InkyDisplay()
 size = (250, 122)
 
 def create_image():
-    display.print_number((10, 10), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
+    display.print_number((21, 22), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
 
 def update_display():
     iconomi_wallet.get_iconomi_balance()
