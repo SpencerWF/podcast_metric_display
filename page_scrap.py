@@ -55,7 +55,7 @@ class InkyDisplay:
         """
         mask = [0]
 
-        source = Image.open(os.path.join(PATH, "resources/calendar.png"))
+        source = Image.open(os.path.join(PATH, "resources/numbers.png"))
         # source = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
         self.mask_image = Image.new("1", source.size)
         w, h = source.size
