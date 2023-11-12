@@ -91,7 +91,7 @@ class InkyDisplay:
         print(f'Printing {number} to screen')
         for digit in str(number):
             self.print_digit(position, int(digit), colour)
-            position = (position[0] + 8, position[1])
+            position = (position[0] + 16, position[1])
 
 
 class IconomiWallet:
