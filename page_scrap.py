@@ -53,6 +53,8 @@ class InkyDisplay:
         or an optional list of allowed colours.
         :param mask: Optional list of Inky pHAT colours to allow.
         """
+        mask = [0]
+
         source = Image.open(os.path.join(PATH, "resources/calendar.png"))
         # source = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
         self.mask_image = Image.new("1", source.size)
@@ -86,6 +88,7 @@ class InkyDisplay:
 
     def print_number(self, position, number, colour):
         """Print a number using the sprite sheet."""
+        print(f'Printing {number} to screen')
         for digit in str(number):
             self.print_digit(position, int(digit), colour)
             position = (position[0] + 8, position[1])
