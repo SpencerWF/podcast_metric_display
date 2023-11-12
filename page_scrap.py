@@ -175,6 +175,7 @@ def create_image():
 def update_display():
     iconomi_wallet.get_iconomi_balance()
     create_image()
+    display.set_border(display.inky_display.BLACK)
     display.push_image()
 
 def mock_loop():
