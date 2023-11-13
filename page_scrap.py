@@ -253,8 +253,9 @@ class PodcastStats:
         self.latest_downloads = 0
         print(self.latest_episode)
         for download in self.stats['rows']:
-            print(f'Download time: {download["time"]} - Episode time: {self.latest_episode["pubdate"]}')
-            if download['time'] > self.latest_episode['pubdate']:
+            download_time = time.mktime(time.strptime(download['time'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+            episode_time = time.mktime(time.strptime(self.latest_episode['pubdate'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+            if download_time > episode_time:
                 if download['episodeId'] == self.latest_episode['id']:
                     self.latest_downloads += 1
             else:
