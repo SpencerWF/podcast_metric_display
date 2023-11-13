@@ -7,14 +7,14 @@ import base64
 from dotenv import load_dotenv
 from Crypto.Hash import HMAC, SHA512
 from inky.auto import auto
-from inky import InkyPHAT
+from inky import InkyPHAT_SSD1608
 from PIL import Image, ImageFont, ImageDraw
 
 load_dotenv()
 PATH = os.path.dirname(__file__)
 
 if(os.getenv("ENV") == 'dev'):
-    from inky.mock import InkyMockPHAT as mock
+    from inky.mock import InkyMockPHATSSD1608 as mock
     import schedule
 
 
@@ -35,13 +35,16 @@ class InkyDisplay:
             if(os.getenv("ENV") == 'dev'):
                 print("Mocking display")
                 self.inky_display = mock(colour="yellow")
-                self.inky_display.resolution = (250, 122)
                 self.inky_display.set_border(self.inky_display.WHITE)
                 self.inky_display.show()
 
         # self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
         self.img = Image.open(os.path.join(PATH, "resources/background.png"))
-        self.img.putpalette([0, 0, 0, 255, 255, 255, 255, 0, 0])
+        print(self.img.palette.getdata())
+        # self.img.remap_palette([1, 0])
+        # self.img.putpalette([0, 0, 0, 255, 255, 255, 255, 0, 0])
+        print(self.img.palette.getdata())
+        # self.img.convert("RGB")
         self.create_mask([0])
 
     def push_image(self):
