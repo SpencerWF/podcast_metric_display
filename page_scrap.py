@@ -110,6 +110,17 @@ class IconomiWallet:
     method = 'GET'
     # HTTP Request Path
     request_path = '/v1/user/balance'
+
+    split = [
+        {
+            "id": "",
+            "value": 0,
+        },
+        {
+            "id": "",
+            "value": 0,
+        }
+    ]
     # # Create Wallet object
     # wallet = {}
     # wallet.balance = 0
@@ -172,9 +183,13 @@ class IconomiWallet:
         
         # return self.wallet.balance
 
+    def get_iconomi_split(self):
+        for index in self.wallet["daaList"]:
+            if self.split[0]["value"] < 
+
 class PodcastStats:
     name = "Founder's Voyage"
-    op3_url = "https://op3.dev/api/1/shows/" + os.getenv("PODCAST_GUID") + "?token=" + os.getenv("OP3_BEARER_TOKEN")
+    op3_url = "https://op3.dev/api/1/shows/" + os.getenv("PODCAST_GUID") + "?token=" + os.getenv("OP3_BEARER_TOKEN") + "&episodes=include"
     op3_downloads = "https://op3.dev/api/1/downloads/show/" 
 
     def __init__(self):
@@ -207,13 +222,18 @@ class PodcastStats:
                 print(self.stats.keys())
                 print(self.stats['error'])
 
+    def get_download_split(self):
+        episodes = [self.response['episodes'][0]['id'], self.response['episodes'][1]['id'], self.response['episodes'][2]['id']]
+        print(episodes)
+        for episode in episodes:
+            for download in self.stats['downloads']:
+                if downloads['episodeId'] == episode:
+                    print(self.stats['downloads']['count'])
+                    self.total_downloads += self.stats['downloads']['count
+            self.stats
 
     def get_total_downloads(self):
         return self.total_downloads
-    
-    def get_total_listeners(self):
-        return self.total_listeners
-
 
 iconomi_wallet = IconomiWallet()
 podcast_stats = PodcastStats()
