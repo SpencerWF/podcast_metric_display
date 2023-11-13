@@ -38,13 +38,7 @@ class InkyDisplay:
                 self.inky_display.set_border(self.inky_display.WHITE)
                 self.inky_display.show()
 
-        # self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
         self.img = Image.open(os.path.join(PATH, "resources/background.png"))
-        print(self.img.palette.getdata())
-        # self.img.remap_palette([1, 0])
-        # self.img.putpalette([0, 0, 0, 255, 255, 255, 255, 0, 0])
-        print(self.img.palette.getdata())
-        # self.img.convert("RGB")
         self.create_mask([0])
 
     def push_image(self):
@@ -127,6 +121,7 @@ class IconomiWallet:
 
     def __init__(self):
         self.get_iconomi_balance()
+        self.get_iconomi_split()
 
 
     def create_signature(self):
@@ -183,9 +178,39 @@ class IconomiWallet:
         
         # return self.wallet.balance
 
-    # def get_iconomi_split(self):
-    #     for index in self.wallet["daaList"]:
-    #         if self.split[0]["value"] < 
+    def get_iconomi_split(self):
+        self.split = [
+            {
+                "id": "",
+                "value": 0,
+            },
+            {
+                "id": "",
+                "value": 0,
+            }
+        ]
+
+        for index in self.wallet["daaList"]:
+            if self.split[0]["value"] < float(index["value"]):
+                self.split[1]["value"] = self.split[0]["value"]
+                self.split[1]["id"] = self.split[0]["id"]
+                self.split[0]["value"] = float(index["value"])
+                self.split[0]["id"] = index["ticker"]
+            elif self.split[1]["value"] < float(index["value"]):
+                self.split[1]["value"] = float(index["value"])
+                self.split[1]["id"] = index["ticker"]
+
+        for index in self.wallet["assetList"]:
+            if float(self.split[0]["value"]) < float(index["value"]):
+                self.split[1]["value"] = self.split[0]["value"]
+                self.split[1]["id"] = self.split[0]["id"]
+                self.split[0]["value"] = float(index["value"])
+                self.split[0]["id"] = index["ticker"]
+            elif self.split[1]["value"] < float(index["value"]):
+                self.split[1]["value"] = float(index["value"])
+                self.split[1]["id"] = index["ticker"]
+
+        self.split_total = self.split[0]["value"] + self.split[1]["value"]
 
 class PodcastStats:
     name = "Founder's Voyage"
@@ -194,6 +219,7 @@ class PodcastStats:
 
     def __init__(self):
         self.get_op3_stats()
+        self.get_download_split()
 
     def get_op3_stats(self):
         self.response = requests.get(self.op3_url, timeout=3, verify=True).json()
@@ -222,15 +248,15 @@ class PodcastStats:
                 print(self.stats.keys())
                 print(self.stats['error'])
 
-    # def get_download_split(self):
-    #     episodes = [self.response['episodes'][0]['id'], self.response['episodes'][1]['id'], self.response['episodes'][2]['id']]
-    #     print(episodes)
-    #     for episode in episodes:
-    #         for download in self.stats['downloads']:
-    #             if downloads['episodeId'] == episode:
-    #                 print(self.stats['downloads']['count'])
-    #                 self.total_downloads += self.stats['downloads']['count
-    #         self.stats
+    def get_download_split(self):
+        self.latest_episode = self.response['episodes'][0]
+        self.latest_downloads = 0
+        print(self.latest_episode)
+        for download in self.stats['rows']:
+            if download['episodeId'] == self.latest_episode['id']:
+                self.latest_downloads += 1
+
+        print(f'Latest episode has {self.latest_downloads} downloads of {self.total_downloads} total downloads')
 
     def get_total_downloads(self):
         return self.total_downloads
@@ -241,12 +267,30 @@ display = InkyDisplay()
 size = (250, 122)
 
 def create_image():
+    display.img = Image.open(os.path.join(PATH, "resources/background.png"))
+    display.create_mask([0])
+
+    draw = ImageDraw.Draw(display.img)
     display.print_number((26, 24), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
+
+    # Draw pie chart of the two largest Iconomi holdings to see the split
+    draw.pieslice((100,25, 125, 50), 0, 360, fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    first_split = round(int(iconomi_wallet.split[0]["value"] / int(iconomi_wallet.split_total) * 360))
+    draw.pieslice((101, 26, 124, 49), 0, first_split, fill=display.inky_display.YELLOW)
+    draw.pieslice((101, 26, 124, 49), first_split, 360, fill=display.inky_display.WHITE)
+
     display.print_number((26, 80), podcast_stats.total_downloads, display.inky_display.YELLOW)
+
+    # Draw rectangle showing split between latest episodes and total downloads
+    draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
 def update_instances():
     iconomi_wallet.get_iconomi_balance()
+    iconomi_wallet.get_iconomi_split()
     podcast_stats.get_op3_stats()
+    podcast_stats.get_download_split()
 
 def update_display():
     create_image()
