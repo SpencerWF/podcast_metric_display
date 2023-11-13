@@ -172,21 +172,69 @@ class IconomiWallet:
         
         # return self.wallet.balance
 
+class PodcastStats:
+    name = "Founder's Voyage"
+    op3_url = "https://op3.dev/api/1/shows/" + os.getenv("PODCAST_GUID") + "?token=" + os.getenv("OP3_BEARER_TOKEN")
+    op3_downloads = "https://op3.dev/api/1/downloads/show/" 
+
+    def __init__(self):
+        self.get_op3_stats()
+
+    def get_op3_stats(self):
+        self.response = requests.get(self.op3_url, timeout=3, verify=True).json()
+        print(f'Looking up stats for {self.response["title"]}')
+        continuationToken = 0
+        continuationFlag = True
+        self.total_downloads = 0
+        while continuationFlag:
+            extra = ''
+            if continuationToken > 0:
+                extra = '&continuationToken=' + str(continuationToken) + "&format=json"
+            else:
+                extra = "&format=json"
+        
+            self.op3_downloads += self.response["showUuid"] + "?token=" + os.getenv("OP3_BEARER_TOKEN") + extra
+            self.stats = requests.get(self.op3_downloads , timeout=10, verify=True).json()
+            if 'count' in self.stats.keys():
+                self.total_downloads += self.stats['count']
+                if 'continuationToken' in self.stats.keys():
+                    continuationToken = self.stats['continuationToken']
+                else:
+                    continuationFlag = False
+            else:
+                continuationFlag = False
+                print('No stats found')
+                print(self.stats.keys())
+                print(self.stats['error'])
+
+
+    def get_total_downloads(self):
+        return self.total_downloads
+    
+    def get_total_listeners(self):
+        return self.total_listeners
+
 
 iconomi_wallet = IconomiWallet()
+podcast_stats = PodcastStats()
 display = InkyDisplay()
 size = (250, 122)
 
 def create_image():
     display.print_number((26, 24), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
+    display.print_number((26, 80), podcast_stats.total_downloads, display.inky_display.YELLOW)
+
+def update_instances():
+    iconomi_wallet.get_iconomi_balance()
+    podcast_stats.get_op3_stats()
 
 def update_display():
-    iconomi_wallet.get_iconomi_balance()
     create_image()
     display.inky_display.set_border(display.inky_display.BLACK)
     display.push_image()
 
 def mock_loop():
+    schedule.every(1).minutes.do(update_instances)
     schedule.every(1).minutes.do(update_display)
 
     while True:
@@ -206,9 +254,6 @@ def main():
         print(iconomi_wallet.wallet['balance'])
     else:
         print('Environment not set.')
-    
-
-
 
 if __name__ == "__main__":
     main()
