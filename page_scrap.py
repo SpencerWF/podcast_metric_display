@@ -183,9 +183,9 @@ class IconomiWallet:
         
         # return self.wallet.balance
 
-    def get_iconomi_split(self):
-        for index in self.wallet["daaList"]:
-            if self.split[0]["value"] < 
+    # def get_iconomi_split(self):
+    #     for index in self.wallet["daaList"]:
+    #         if self.split[0]["value"] < 
 
 class PodcastStats:
     name = "Founder's Voyage"
