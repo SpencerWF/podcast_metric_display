@@ -222,15 +222,15 @@ class PodcastStats:
                 print(self.stats.keys())
                 print(self.stats['error'])
 
-    def get_download_split(self):
-        episodes = [self.response['episodes'][0]['id'], self.response['episodes'][1]['id'], self.response['episodes'][2]['id']]
-        print(episodes)
-        for episode in episodes:
-            for download in self.stats['downloads']:
-                if downloads['episodeId'] == episode:
-                    print(self.stats['downloads']['count'])
-                    self.total_downloads += self.stats['downloads']['count
-            self.stats
+    # def get_download_split(self):
+    #     episodes = [self.response['episodes'][0]['id'], self.response['episodes'][1]['id'], self.response['episodes'][2]['id']]
+    #     print(episodes)
+    #     for episode in episodes:
+    #         for download in self.stats['downloads']:
+    #             if downloads['episodeId'] == episode:
+    #                 print(self.stats['downloads']['count'])
+    #                 self.total_downloads += self.stats['downloads']['count
+    #         self.stats
 
     def get_total_downloads(self):
         return self.total_downloads
