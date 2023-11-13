@@ -175,7 +175,7 @@ display = InkyDisplay()
 size = (250, 122)
 
 def create_image():
-    display.print_number((21, 22), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
+    display.print_number((26, 24), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
 
 def update_display():
     iconomi_wallet.get_iconomi_balance()
