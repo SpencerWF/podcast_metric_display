@@ -39,9 +39,9 @@ class InkyDisplay:
                 self.inky_display.set_border(self.inky_display.WHITE)
                 self.inky_display.show()
 
-        self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
+        # self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
         self.img = Image.open(os.path.join(PATH, "resources/background.png"))
-        self.create_mask([0, 1, 2])
+        self.create_mask([0])
 
     def push_image(self):
         self.inky_display.set_image(self.img)
@@ -55,7 +55,6 @@ class InkyDisplay:
         or an optional list of allowed colours.
         :param mask: Optional list of Inky pHAT colours to allow.
         """
-        mask = [0]
 
         source = Image.open(os.path.join(PATH, "resources/numbers.png"))
         # source = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
