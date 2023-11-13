@@ -41,6 +41,7 @@ class InkyDisplay:
 
         # self.img = Image.new("P", (self.inky_display.WIDTH, self.inky_display.HEIGHT))
         self.img = Image.open(os.path.join(PATH, "resources/background.png"))
+        self.img.putpalette([0, 0, 0, 255, 255, 255, 255, 0, 0])
         self.create_mask([0])
 
     def push_image(self):
