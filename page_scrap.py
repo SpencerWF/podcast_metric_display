@@ -339,7 +339,7 @@ def update_instances():
 
 def update_display():
     create_image()
-    display.inky_display.set_border(display.inky_display.BLACK)
+    # display.inky_display.set_border(display.inky_display.BLACK)
     display.push_image()
 
 def discord_update():
