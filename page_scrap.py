@@ -335,6 +335,7 @@ def main():
         date = time.strftime("%Y-%m-%d")
         file_name = f'{date}.log'
         if os.getenv("DISCORD_WEBHOOK") and not os.path.isfile(file_name):
+            print("Sending discord update")
             discord_update()
             # Get yesterday's date
             yesterday = time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))
