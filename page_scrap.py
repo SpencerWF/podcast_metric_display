@@ -251,18 +251,37 @@ class PodcastStats:
 
     def get_download_split(self):
         self.latest_episode = self.response['episodes'][0]
-        self.latest_downloads = 0
+        self.week1_downloads = 0
+        self.week2_downloads = 0
+        self.week3_downloads = 0
+        self.week1_latest_downloads = 0
+        self.week2_latest_downloads = 0
+        self.week3_latest_downloads = 0
         print(self.latest_episode)
+
+        # Get current time in epoch seconds
+        current_date = time.time()
+        print(current_date)
+        
         for download in self.stats['rows']:
             download_time = time.mktime(time.strptime(download['time'], "%Y-%m-%dT%H:%M:%S.%fZ"))
             episode_time = time.mktime(time.strptime(self.latest_episode['pubdate'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-            if download_time > episode_time:
+            if download_time > current_date - 604800:
+                self.week1_downloads += 1
                 if download['episodeId'] == self.latest_episode['id']:
-                    self.latest_downloads += 1
+                    self.week1_latest_downloads += 1
+            elif download_time > current_date-2 * 604800:
+                self.week2_downloads += 1
+                if download['episodeId'] == self.latest_episode['id']:
+                    self.week2_latest_downloads += 1
+            elif download_time > current_date-3 * 604800:
+                self.week3_downloads += 1
+                if download['episodeId'] == self.latest_episode['id']:
+                    self.week3_latest_downloads += 1
             else:
                 break
 
-        print(f'Latest episode has {self.latest_downloads} downloads of {self.total_downloads} total downloads')
+        # print(f'Latest episode has {self.latest_downloads} downloads of {self.total_downloads} total downloads')
 
     def get_total_downloads(self):
         return self.total_downloads
@@ -293,10 +312,24 @@ def create_image():
 
     display.print_number((26, 80), podcast_stats.total_downloads, display.inky_display.YELLOW)
 
-    # Draw rectangle showing split between latest episodes and total downloads
-    draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
-    draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    # Draw triangles to show the split of downloads for the last 3 weeks
+    week1_size = 20*podcast_stats.week1_downloads/podcast_stats.week2_downloads
+    week1_latest_size = 20*podcast_stats.week1_latest_downloads/podcast_stats.week2_latest_downloads
+    week2_latest_size = 20*podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads
+    week3_size = 20*podcast_stats.week3_downloads/podcast_stats.week2_downloads
+    week3_latest_size = 20*podcast_stats.week3_latest_downloads/podcast_stats.week2_latest_downloads
+
+    draw.polygon([(102 + week3_size + 20, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20 + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+
+    draw.polygon([(101 + week3_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - 20)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(101 + week3_size + 20 - week2_latest_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - week2_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+
+    draw.polygon([(100, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(100 + week3_size - week3_latest_size, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
 def update_instances():
     iconomi_wallet.get_iconomi_balance()
