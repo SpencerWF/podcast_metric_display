@@ -337,11 +337,12 @@ def main():
         if os.getenv("DISCORD_WEBHOOK") and not os.path.isfile(file_name):
             print("Sending discord update")
             discord_update()
+            # Create log file
+            open(file_name, 'w+').close()
             # Get yesterday's date
             yesterday = time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))
             # Delete yesterday's log file
             os.path.isfile(yesterday) and os.remove(yesterday)
-        discord_update()
         print(iconomi_wallet.wallet['balance'])
     else:
         print('Environment not set.')
