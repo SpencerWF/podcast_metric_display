@@ -9,6 +9,7 @@ from Crypto.Hash import HMAC, SHA512
 from inky.auto import auto
 from inky import InkyPHAT_SSD1608
 from PIL import Image, ImageFont, ImageDraw
+import pathlib
 
 load_dotenv()
 PATH = os.path.dirname(__file__)
@@ -265,6 +266,12 @@ class PodcastStats:
 
     def get_total_downloads(self):
         return self.total_downloads
+    
+    def craft_discord_update(self):
+        self.message = {
+            "content": f'Founder\'s Voyage Total Downloads: {str(self.total_downloads)} \n Latest Episode Downloads: {str(self.latest_downloads)} \n https://foundersvoyage.org',
+            "username": "Founder's Voyage",
+        }
 
 iconomi_wallet = IconomiWallet()
 podcast_stats = PodcastStats()
@@ -302,10 +309,15 @@ def update_display():
     display.inky_display.set_border(display.inky_display.BLACK)
     display.push_image()
 
+def discord_update():
+    podcast_stats.craft_discord_update()
+    requests.post(os.getenv("DISCORD_WEBHOOK"), json=podcast_stats.message)
+
 def mock_loop():
     schedule.every(1).minutes.do(update_instances)
     schedule.every(1).minutes.do(update_display)
-
+    # schedule.every(1).minutes.do(discord_update)
+    schedule.every(1).day.at("05:00").do(discord_update)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -320,6 +332,15 @@ def main():
         mock_loop()
     elif os.getenv("ENV") == 'prod':
         update_display()
+        date = time.strftime("%Y-%m-%d")
+        file_name = f'{date}.log'
+        if os.getenv("DISCORD_WEBHOOK") and not os.path.isfile(file_name):
+            discord_update()
+            # Get yesterday's date
+            yesterday = time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))
+            # Delete yesterday's log file
+            os.path.isfile(yesterday) and os.remove(yesterday)
+        discord_update()
         print(iconomi_wallet.wallet['balance'])
     else:
         print('Environment not set.')
