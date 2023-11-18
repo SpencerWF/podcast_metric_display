@@ -289,7 +289,7 @@ class PodcastStats:
     
     def craft_discord_update(self):
         self.message = {
-            "content": f'Founder\'s Voyage Total Downloads: {str(self.total_downloads)} \n Latest Episode Downloads: {str(self.latest_downloads)} \n https://foundersvoyage.org',
+            "content": f'Founder\'s Voyage Total Downloads: {str(self.total_downloads)} \n',
             "username": "Founder's Voyage",
         }
 
