@@ -10,6 +10,7 @@ from inky.auto import auto
 from inky import InkyPHAT_SSD1608
 from PIL import Image, ImageFont, ImageDraw
 import pathlib
+import math
 
 load_dotenv()
 PATH = os.path.dirname(__file__)
@@ -313,11 +314,11 @@ def create_image():
     display.print_number((26, 80), podcast_stats.total_downloads, display.inky_display.YELLOW)
 
     # Draw triangles to show the split of downloads for the last 3 weeks
-    week1_size = 20*podcast_stats.week1_downloads/podcast_stats.week2_downloads
-    week1_latest_size = 20*podcast_stats.week1_latest_downloads/podcast_stats.week2_latest_downloads
-    week2_latest_size = 20*podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads
-    week3_size = 20*podcast_stats.week3_downloads/podcast_stats.week2_downloads
-    week3_latest_size = 20*podcast_stats.week3_latest_downloads/podcast_stats.week2_latest_downloads
+    week1_size = 20*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
+    week1_latest_size = 20*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_latest_downloads))
+    week2_latest_size = 20*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
+    week3_size = 20*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
+    week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_latest_downloads))
 
     draw.polygon([(102 + week3_size + 20, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20 + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
