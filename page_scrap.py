@@ -306,7 +306,7 @@ def create_image():
     display.print_number((26, 24), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
 
     # Draw pie chart of the two largest Iconomi holdings to see the split
-    draw.pieslice((100,25, 125, 50), 0, 360, fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    draw.pieslice((100,25, 125, 50), 0, 360, fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
     first_split = round(int(iconomi_wallet.split[0]["value"] / int(iconomi_wallet.split_total) * 360))
     draw.pieslice((101, 26, 124, 49), 0, first_split, fill=display.inky_display.YELLOW)
     draw.pieslice((101, 26, 124, 49), first_split, 360, fill=display.inky_display.WHITE)
@@ -321,13 +321,13 @@ def create_image():
     week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_latest_downloads))
 
     draw.polygon([(102 + week3_size + 20, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20 + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
     draw.polygon([(101 + week3_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - 20)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(101 + week3_size + 20 - week2_latest_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - week2_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    draw.polygon([(101 + week3_size + 20 - week2_latest_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
     draw.polygon([(100, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(100 + week3_size - week3_latest_size, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_latest_size)], fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    draw.polygon([(100 + week3_size - week3_latest_size, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
     # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
     # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
