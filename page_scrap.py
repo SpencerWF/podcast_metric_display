@@ -19,6 +19,7 @@ if(os.getenv("ENV") == 'dev'):
     from inky.mock import InkyMockPHATSSD1608 as mock
     import schedule
 
+MID_TRIANGLE_SIZE = 30
 
 # s=requests.session()
 # res = s.get(iconomi_url,headers=headers,timeout=3, verify=True).content
@@ -345,17 +346,17 @@ def create_discord_image():
     display.print_number((40, 32), podcast_stats.total_downloads, display.inky_display.YELLOW)
 
     # Draw triangles to show the split of downloads for the last 3 weeks
-    week1_size = 20*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
-    week3_size = 20*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
-    week1_latest_size = 20*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
-    week2_latest_size = 20*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
-    week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
+    week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
+    week3_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
+    week1_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
+    week2_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
+    week3_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
 
-    draw.polygon([(102 + week3_size + 20, 70), (102 + week3_size + 20 + week1_size, 70), (102 + week3_size + 20 + week1_size, 70 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 70), (102 + week3_size + 20 + week1_size, 70), (102 + week3_size + 20+ week1_size, 70 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE + week1_size - week1_latest_size, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
-    draw.polygon([(101 + week3_size, 70), (101 + week3_size + 20, 70), (101 + week3_size + 20, 70 - 20)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(101 + week3_size + 20 - week2_latest_size, 70), (101 + week3_size + 20, 70), (101 + week3_size + 20, 70 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(101 + week3_size, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70 - MID_TRIANGLE_SIZE)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(101 + week3_size + MID_TRIANGLE_SIZE - week2_latest_size, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
     draw.polygon([(100, 70), (100 + week3_size, 70), (100 + week3_size, 70 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     draw.polygon([(100 + week3_size - week3_latest_size, 70), (100 + week3_size, 70), (100 + week3_size, 70 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
