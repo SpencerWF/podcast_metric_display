@@ -252,12 +252,14 @@ class PodcastStats:
 
     def get_download_split(self):
         self.latest_episode = self.response['episodes'][0]
+        self.latest_episode_time = time.mktime(time.strptime(self.latest_episode['pubdate'], "%Y-%m-%dT%H:%M:%S.%fZ"))
         self.week1_downloads = 0
         self.week2_downloads = 0
         self.week3_downloads = 0
         self.week1_latest_downloads = 0
         self.week2_latest_downloads = 0
         self.week3_latest_downloads = 0
+        
         print(self.latest_episode)
 
         # Get current time in epoch seconds
@@ -266,7 +268,6 @@ class PodcastStats:
         
         for download in self.stats['rows']:
             download_time = time.mktime(time.strptime(download['time'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-            episode_time = time.mktime(time.strptime(self.latest_episode['pubdate'], "%Y-%m-%dT%H:%M:%S.%fZ"))
             if download_time > current_date - 604800:
                 self.week1_downloads += 1
                 if download['episodeId'] == self.latest_episode['id']:
@@ -282,6 +283,9 @@ class PodcastStats:
             else:
                 break
 
+        print(f'Week 1: {self.week1_downloads} downloads Latest: {self.week1_latest_downloads}')
+        print(f'Week 2: {self.week2_downloads} downloads Latest: {self.week2_latest_downloads}')
+        print(f'Week 3: {self.week3_downloads} downloads Latest: {self.week3_latest_downloads}')
         # print(f'Latest episode has {self.latest_downloads} downloads of {self.total_downloads} total downloads')
 
     def get_total_downloads(self):
@@ -315,10 +319,10 @@ def create_image():
 
     # Draw triangles to show the split of downloads for the last 3 weeks
     week1_size = 20*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
-    week1_latest_size = 20*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_latest_downloads))
+    week1_latest_size = 20*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
     week2_latest_size = 20*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
     week3_size = 20*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
-    week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_latest_downloads))
+    week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
 
     draw.polygon([(102 + week3_size + 20, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20 + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
@@ -332,6 +336,34 @@ def create_image():
     # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
+def create_discord_image():
+    discord_img = Image.open(os.path.join(PATH, "resources/discord_message.png"))
+    display.create_mask([0])
+
+    draw = ImageDraw.Draw(discord_img)
+
+    display.print_number((40, 32), podcast_stats.total_downloads, display.inky_display.YELLOW)
+
+    # Draw triangles to show the split of downloads for the last 3 weeks
+    week1_size = 20*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
+    week3_size = 20*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
+    week1_latest_size = 20*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
+    week2_latest_size = 20*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
+    week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
+
+    draw.polygon([(102 + week3_size + 20, 70), (102 + week3_size + 20 + week1_size, 70), (102 + week3_size + 20 + week1_size, 70 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 70), (102 + week3_size + 20 + week1_size, 70), (102 + week3_size + 20+ week1_size, 70 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+
+    draw.polygon([(101 + week3_size, 70), (101 + week3_size + 20, 70), (101 + week3_size + 20, 70 - 20)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(101 + week3_size + 20 - week2_latest_size, 70), (101 + week3_size + 20, 70), (101 + week3_size + 20, 70 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+
+    draw.polygon([(100, 70), (100 + week3_size, 70), (100 + week3_size, 70 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(100 + week3_size - week3_latest_size, 70), (100 + week3_size, 70), (100 + week3_size, 70 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
+    # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+
+
 def update_instances():
     iconomi_wallet.get_iconomi_balance()
     iconomi_wallet.get_iconomi_split()
@@ -344,6 +376,7 @@ def update_display():
     display.push_image()
 
 def discord_update():
+    create_discord_image()
     podcast_stats.craft_discord_update()
     requests.post(os.getenv("DISCORD_WEBHOOK"), json=podcast_stats.message)
 
