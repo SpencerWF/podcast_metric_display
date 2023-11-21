@@ -20,6 +20,7 @@ if(os.getenv("ENV") == 'dev'):
     import schedule
 
 MID_TRIANGLE_SIZE = 30
+HTTP_OK = 200
 
 # s=requests.session()
 # res = s.get(iconomi_url,headers=headers,timeout=3, verify=True).content
@@ -167,7 +168,7 @@ class IconomiWallet:
 
         self.request_iconomi_balance()
 
-        if self.response.status_code == 200:
+        if self.response.status_code == HTTP_OK:
             self.wallet = self.response.json()
             self.wallet["balance"] = 0
             print(self.wallet)
@@ -319,17 +320,17 @@ def create_image():
     display.print_number((26, 80), podcast_stats.total_downloads, display.inky_display.YELLOW)
 
     # Draw triangles to show the split of downloads for the last 3 weeks
-    week1_size = 20*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
-    week1_latest_size = 20*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
-    week2_latest_size = 20*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
-    week3_size = 20*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
-    week3_latest_size = 20*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
+    week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
+    week1_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
+    week2_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
+    week3_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
+    week3_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
 
-    draw.polygon([(102 + week3_size + 20, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20 + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(102 + week3_size + 20 + week1_size - week1_latest_size, 112), (102 + week3_size + 20 + week1_size, 112), (102 + week3_size + 20+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE, 112), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 112), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE + week1_size - week1_latest_size, 112), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 112), (102 + week3_size + MID_TRIANGLE_SIZE+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
-    draw.polygon([(101 + week3_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - 20)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(101 + week3_size + 20 - week2_latest_size, 112), (101 + week3_size + 20, 112), (101 + week3_size + 20, 112 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(101 + week3_size, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112 - MID_TRIANGLE_SIZE)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(101 + week3_size + MID_TRIANGLE_SIZE - week2_latest_size, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
     draw.polygon([(100, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     draw.polygon([(100 + week3_size - week3_latest_size, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
