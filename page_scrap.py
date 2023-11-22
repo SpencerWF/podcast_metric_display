@@ -21,6 +21,16 @@ if(os.getenv("ENV") == 'dev'):
 
 MID_TRIANGLE_SIZE = 30
 HTTP_OK = 200
+ICONOMI_NUMBERS_POSITION = (26, 24)
+PODCAST_NUMBERS_POSITION = (26, 80)
+OUTLINE_PIESLICE = (100,25, 125, 50)
+FIRST_PIECE_PIESLICE = (101, 26, 124, 49)
+SECOND_PIECE_PIESLICE = (101, 26, 124, 49)
+FULL_CIRCLE = 360
+FIRST_TRIANGLE_START = 100
+SECOND_TRIANGLE_START = 101
+THIRD_TRIANGLE_START_WIDTH = 102
+TRIANGLE_START_HEIGHT = 112
 
 # s=requests.session()
 # res = s.get(iconomi_url,headers=headers,timeout=3, verify=True).content
@@ -309,15 +319,15 @@ def create_image():
     display.create_mask([0])
 
     draw = ImageDraw.Draw(display.img)
-    display.print_number((26, 24), iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
+    display.print_number(ICONOMI_NUMBERS_POSITION, iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
 
     # Draw pie chart of the two largest Iconomi holdings to see the split
-    draw.pieslice((100,25, 125, 50), 0, 360, fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
-    first_split = round(int(iconomi_wallet.split[0]["value"] / int(iconomi_wallet.split_total) * 360))
-    draw.pieslice((101, 26, 124, 49), 0, first_split, fill=display.inky_display.YELLOW)
-    draw.pieslice((101, 26, 124, 49), first_split, 360, fill=display.inky_display.WHITE)
+    draw.pieslice(OUTLINE_PIESLICE, 0, FULL_CIRCLE, fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    first_split = round(int(iconomi_wallet.split[0]["value"] / int(iconomi_wallet.split_total) * FULL_CIRCLE))
+    draw.pieslice(FIRST_PIECE_PIESLICE, 0, first_split, fill=display.inky_display.YELLOW)
+    draw.pieslice(SECOND_PIECE_PIESLICE, first_split, FULL_CIRCLE, fill=display.inky_display.WHITE)
 
-    display.print_number((26, 80), podcast_stats.total_downloads, display.inky_display.YELLOW)
+    display.print_number(PODCAST_NUMBERS_POSITION, podcast_stats.total_downloads, display.inky_display.YELLOW)
 
     # Draw triangles to show the split of downloads for the last 3 weeks
     week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
@@ -326,14 +336,14 @@ def create_image():
     week3_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
     week3_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
 
-    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE, 112), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 112), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 112 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE + week1_size - week1_latest_size, 112), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 112), (102 + week3_size + MID_TRIANGLE_SIZE+ week1_size, 112 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE, TRIANGLE_START_HEIGHT), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, TRIANGLE_START_HEIGHT), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, TRIANGLE_START_HEIGHT - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size - week1_latest_size, TRIANGLE_START_HEIGHT), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, TRIANGLE_START_HEIGHT), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE+ week1_size, TRIANGLE_START_HEIGHT - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
-    draw.polygon([(101 + week3_size, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112 - MID_TRIANGLE_SIZE)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(101 + week3_size + MID_TRIANGLE_SIZE - week2_latest_size, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112), (101 + week3_size + MID_TRIANGLE_SIZE, 112 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(SECOND_TRIANGLE_START + week3_size, TRIANGLE_START_HEIGHT), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, TRIANGLE_START_HEIGHT), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, TRIANGLE_START_HEIGHT - MID_TRIANGLE_SIZE)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE - week2_latest_size, TRIANGLE_START_HEIGHT), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, TRIANGLE_START_HEIGHT), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, TRIANGLE_START_HEIGHT - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
-    draw.polygon([(100, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(100 + week3_size - week3_latest_size, 112), (100 + week3_size, 112), (100 + week3_size, 112 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(FIRST_TRIANGLE_START, TRIANGLE_START_HEIGHT), (FIRST_TRIANGLE_START + week3_size, TRIANGLE_START_HEIGHT), (FIRST_TRIANGLE_START + week3_size, TRIANGLE_START_HEIGHT - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(FIRST_TRIANGLE_START + week3_size - week3_latest_size, TRIANGLE_START_HEIGHT), (FIRST_TRIANGLE_START + week3_size, TRIANGLE_START_HEIGHT), (FIRST_TRIANGLE_START + week3_size, TRIANGLE_START_HEIGHT - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
     # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
     # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
@@ -353,14 +363,16 @@ def create_discord_image():
     week2_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
     week3_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_latest_downloads/podcast_stats.week2_downloads))
 
-    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(102 + week3_size + MID_TRIANGLE_SIZE + week1_size - week1_latest_size, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70), (102 + week3_size + MID_TRIANGLE_SIZE + week1_size, 70 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE, 70), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, 70), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, 70 - week1_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size - week1_latest_size, 70), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, 70), (THIRD_TRIANGLE_START_WIDTH + week3_size + MID_TRIANGLE_SIZE + week1_size, 70 - week1_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
-    draw.polygon([(101 + week3_size, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70 - MID_TRIANGLE_SIZE)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(101 + week3_size + MID_TRIANGLE_SIZE - week2_latest_size, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70), (101 + week3_size + MID_TRIANGLE_SIZE, 70 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(SECOND_TRIANGLE_START + week3_size, 70), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, 70), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, 70 - MID_TRIANGLE_SIZE)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE - week2_latest_size, 70), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, 70), (SECOND_TRIANGLE_START + week3_size + MID_TRIANGLE_SIZE, 70 - week2_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
-    draw.polygon([(100, 70), (100 + week3_size, 70), (100 + week3_size, 70 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    draw.polygon([(100 + week3_size - week3_latest_size, 70), (100 + week3_size, 70), (100 + week3_size, 70 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    draw.polygon([(FIRST_TRIANGLE_START, 70), (FIRST_TRIANGLE_START + week3_size, 70), (FIRST_TRIANGLE_START + week3_size, 70 - week3_size)], fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
+    draw.polygon([(FIRST_TRIANGLE_START + week3_size - week3_latest_size, 70), (FIRST_TRIANGLE_START + week3_size, 70), (FIRST_TRIANGLE_START + week3_size, 70 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+
+    discord_img.save(os.path.join(PATH, "resources/discord_message.png"))
     # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
     # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
@@ -385,8 +397,8 @@ def discord_update():
 def mock_loop():
     schedule.every(1).minutes.do(update_instances)
     schedule.every(1).minutes.do(update_display)
-    # schedule.every(1).minutes.do(discord_update)
-    schedule.every(1).day.at("05:00").do(discord_update)
+    schedule.every(1).minutes.do(discord_update)
+    # schedule.every(1).day.at("05:00").do(discord_update)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -401,17 +413,17 @@ def main():
         mock_loop()
     elif os.getenv("ENV") == 'prod':
         update_display()
-        date = time.strftime("%Y-%m-%d")
+        date = time.strftime("%Y-%m-%d", time.localtime(time.time() - 18000))
         file_name = f'{date}.log'
         if os.getenv("DISCORD_WEBHOOK") and not os.path.isfile(file_name):
             print("Sending discord update")
             discord_update()
-            # Create log file
-            open(file_name, 'w+').close()
             # Get yesterday's date
             yesterday = time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))
             # Delete yesterday's log file
             os.path.isfile(yesterday) and os.remove(yesterday)
+            # Create log file for today
+            open(file_name, 'w+').close()
         print(iconomi_wallet.wallet['balance'])
     else:
         print('Environment not set.')
