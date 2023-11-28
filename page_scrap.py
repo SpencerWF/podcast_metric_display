@@ -229,7 +229,7 @@ class IconomiWallet:
 class PodcastStats:
     name = "Founder's Voyage"
     op3_url = "https://op3.dev/api/1/shows/" + os.getenv("PODCAST_GUID") + "?token=" + os.getenv("OP3_BEARER_TOKEN") + "&episodes=include"
-    op3_downloads = "https://op3.dev/api/1/downloads/show/" 
+    op3_downloads = "https://op3.dev/api/1/downloads/show/"
 
     def __init__(self):
         self.get_op3_stats()
@@ -262,6 +262,8 @@ class PodcastStats:
                 print(self.stats.keys())
                 print(self.stats['error'])
 
+        # print(f'Rows: {len(self.stats["rows"])}')
+
     def get_download_split(self):
         self.latest_episode = self.response['episodes'][0]
         self.latest_episode_time = time.mktime(time.strptime(self.latest_episode['pubdate'], "%Y-%m-%dT%H:%M:%S.%fZ"))
@@ -278,19 +280,32 @@ class PodcastStats:
         current_date = time.time()
         print(current_date)
         
-        for download in self.stats['rows']:
+        for download in reversed(self.stats['rows']):
             download_time = time.mktime(time.strptime(download['time'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+            print(f'Download time: {download_time} Latest episode time: {self.latest_episode_time} Current date: {current_date}')
+
+            # If download is within the last week
             if download_time > current_date - 604800:
                 self.week1_downloads += 1
+                print('first test')
                 if download['episodeId'] == self.latest_episode['id']:
+                    print('first test, second level')
                     self.week1_latest_downloads += 1
+
+            # If download is within the last two weeks
             elif download_time > current_date-2 * 604800:
+                print('second test')
                 self.week2_downloads += 1
                 if download['episodeId'] == self.latest_episode['id']:
+                    print('second test, second level')
                     self.week2_latest_downloads += 1
+
+            # If download is within the last three weeks
             elif download_time > current_date-3 * 604800:
+                print('third test')
                 self.week3_downloads += 1
                 if download['episodeId'] == self.latest_episode['id']:
+                    print('third test, second level')
                     self.week3_latest_downloads += 1
             else:
                 break
@@ -353,8 +368,10 @@ def create_discord_image():
     display.create_mask([0])
 
     draw = ImageDraw.Draw(discord_img)
+    # font = ImageFont
 
     display.print_number((40, 32), podcast_stats.total_downloads, display.inky_display.YELLOW)
+    
 
     # Draw triangles to show the split of downloads for the last 3 weeks
     week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
