@@ -9,8 +9,8 @@ from Crypto.Hash import HMAC, SHA512
 from inky.auto import auto
 from inky import InkyPHAT_SSD1608
 from PIL import Image, ImageFont, ImageDraw
-import pathlib
 import math
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 load_dotenv()
 PATH = os.path.dirname(__file__)
@@ -230,6 +230,7 @@ class PodcastStats:
     name = "Founder's Voyage"
     op3_url = "https://op3.dev/api/1/shows/" + os.getenv("PODCAST_GUID") + "?token=" + os.getenv("OP3_BEARER_TOKEN") + "&episodes=include"
     op3_downloads = "https://op3.dev/api/1/downloads/show/"
+    font = ImageFont.truetype(os.path.join(PATH, "resources/bnfont.ttf"), 24)
 
     def __init__(self):
         self.get_op3_stats()
@@ -241,9 +242,10 @@ class PodcastStats:
         continuationToken = 0
         continuationFlag = True
         self.total_downloads = 0
+        self.op3_downloads = "https://op3.dev/api/1/downloads/show/"
         while continuationFlag:
             extra = ''
-            if continuationToken > 0:
+            if continuationToken != 0:
                 extra = '&continuationToken=' + str(continuationToken) + "&format=json"
             else:
                 extra = "&format=json"
@@ -253,8 +255,10 @@ class PodcastStats:
             if 'count' in self.stats.keys():
                 self.total_downloads += self.stats['count']
                 if 'continuationToken' in self.stats.keys():
+                    print(f'Continuation token: {self.stats["continuationToken"]} with {self.stats["count"]} downloads')
                     continuationToken = self.stats['continuationToken']
                 else:
+                    print('No continuation token with ' + str(self.stats['count']) + ' downloads')
                     continuationFlag = False
             else:
                 continuationFlag = False
@@ -319,6 +323,16 @@ class PodcastStats:
         return self.total_downloads
     
     def craft_discord_update(self):
+        self.webhook = DiscordWebhook(url=os.getenv("DISCORD_WEBHOOK"))
+        embed = DiscordEmbed(title=f'{self.name} Stats', description=f'Total Downloads: {self.total_downloads}', color=242424)
+        embed.set_author(name='Founder\'s Voyage', url='https://foundersvoyage.com', icon_url='https://custom-images.strikinglycdn.com/res/hrscywv4p/image/upload/c_limit,fl_lossy,h_300,w_300,f_auto,q_auto/4011783/807815_706925.png')
+        # embed.set_image(url='resources/discord_message.png')
+        embed.set_timestamp()
+        with open(os.path.join(PATH, "resources/discord_message.png"), "rb") as f:
+            embed.set_image(url="attachment://discord_message.png")
+            self.webhook.add_file(file=f.read(), filename='discord_message.png')
+        self.webhook.add_embed(embed)
+
         self.message = {
             "content": f'Founder\'s Voyage Total Downloads: {str(self.total_downloads)} \n',
             "username": "Founder's Voyage",
@@ -327,6 +341,7 @@ class PodcastStats:
 iconomi_wallet = IconomiWallet()
 podcast_stats = PodcastStats()
 display = InkyDisplay()
+# discord_display = InkyDisplay()
 size = (250, 122)
 
 def create_image():
@@ -345,6 +360,9 @@ def create_image():
     display.print_number(PODCAST_NUMBERS_POSITION, podcast_stats.total_downloads, display.inky_display.YELLOW)
 
     # Draw triangles to show the split of downloads for the last 3 weeks
+    if podcast_stats.week2_downloads == 0:
+        podcast_stats.week2_downloads = 1
+
     week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
     week1_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
     week2_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week2_latest_downloads/podcast_stats.week2_downloads))
@@ -362,18 +380,22 @@ def create_image():
     # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
     # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
     # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
+    # display.inky_display.
 
 def create_discord_image():
-    discord_img = Image.open(os.path.join(PATH, "resources/discord_message.png"))
-    display.create_mask([0])
+    discord_img = Image.open(os.path.join(PATH, "resources/discord_background.png"))
+    # display.create_mask([0])
 
     draw = ImageDraw.Draw(discord_img)
     # font = ImageFont
 
-    display.print_number((40, 32), podcast_stats.total_downloads, display.inky_display.YELLOW)
+    # display.print_number((20, 32), podcast_stats.total_downloads, display.inky_display.YELLOW)
+    draw.text((20, 40), str(podcast_stats.total_downloads), font=podcast_stats.font, fill=display.inky_display.YELLOW)
     
-
     # Draw triangles to show the split of downloads for the last 3 weeks
+    if podcast_stats.week2_downloads == 0:
+        podcast_stats.week2_downloads = 1
+    
     week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
     week3_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week3_downloads/podcast_stats.week2_downloads))
     week1_latest_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_latest_downloads/podcast_stats.week2_downloads))
@@ -409,7 +431,9 @@ def update_display():
 def discord_update():
     create_discord_image()
     podcast_stats.craft_discord_update()
-    requests.post(os.getenv("DISCORD_WEBHOOK"), json=podcast_stats.message)
+    response = podcast_stats.webhook.execute()
+    print(response)
+    # requests.post(os.getenv("DISCORD_WEBHOOK"), json=podcast_stats.message)
 
 def mock_loop():
     schedule.every(1).minutes.do(update_instances)
