@@ -162,3 +162,5 @@ cython_debug/
 
 # Image Editing Gimp Files
 *.xcf
+
+discord_message.*
