@@ -11,6 +11,7 @@ from inky import InkyPHAT_SSD1608
 from PIL import Image, ImageFont, ImageDraw
 import math
 from discord_webhook import DiscordWebhook, DiscordEmbed
+import json
 
 load_dotenv()
 PATH = os.path.dirname(__file__)
@@ -19,10 +20,11 @@ if(os.getenv("ENV") == 'dev'):
     from inky.mock import InkyMockPHATSSD1608 as mock
     import schedule
 
-MID_TRIANGLE_SIZE = 30
+MID_TRIANGLE_SIZE = 20
 HTTP_OK = 200
-ICONOMI_NUMBERS_POSITION = (26, 24)
-PODCAST_NUMBERS_POSITION = (26, 80)
+ICONOMI_NUMBERS_POSITION = (65, 12)
+SHARKNINJA_NUMBERS_POSITION = (65, 56)
+PODCAST_NUMBERS_POSITION = (35, 100)
 OUTLINE_PIESLICE = (100,25, 125, 50)
 FIRST_PIECE_PIESLICE = (101, 26, 124, 49)
 SECOND_PIECE_PIESLICE = (101, 26, 124, 49)
@@ -31,6 +33,8 @@ FIRST_TRIANGLE_START = 100
 SECOND_TRIANGLE_START = 101
 THIRD_TRIANGLE_START_WIDTH = 102
 TRIANGLE_START_HEIGHT = 112
+
+USD_to_GBP = 0.72
 
 # s=requests.session()
 # res = s.get(iconomi_url,headers=headers,timeout=3, verify=True).content
@@ -106,6 +110,103 @@ class InkyDisplay:
             self.print_digit(position, int(digit), colour)
             position = (position[0] + 16, position[1])
 
+# class CurrencyConvertion:
+
+
+#     def __init__(self):
+#         date = time.strftime("%Y-%m-%d", time.localtime(time.time() - 18000))
+#         file_name = f'{date}.json'
+#         if os.path.isfile(f'./resources/{file_name}'):
+#             with open(os.path.join(PATH, f'resources/{file_name}'), "wr") as f:
+#                 self.stock_currency = json.load(f)
+#                 USD_to_GBP = self.stock_currency['currency']['USD']
+#         else:
+#             json_file = json.dumps(self.stock_currency)
+#             with open(os.path.join(PATH, f'resources/{file_name}'), "w") as f:
+#                 f.write(json_file)
+
+class StocksWallet:
+    # Grab Alpha Vantage API key from .env file
+    ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+    # Store API URL
+    ALPHA_VANTAGE_URL = os.getenv("ALPHA_VANTAGE_URL")
+
+    # Grab API key from .env file
+    CURRENCY_API_KEY = os.getenv("FIXER_API_KEY")
+    # Store API URL
+    CURRENCY_URL = os.getenv("FIXER_URL")
+    # Store currency symbols
+    CURRENCY_SYMBOLS = os.getenv("FIXER_SYMBOLS")
+
+    def __init__(self):
+        self.get_stock_list()
+
+    def __str__(self) -> str:
+        return f"Stocks: {self.stock_list}"
+
+    def get_stock_list(self):
+        date = time.strftime("%Y-%m-%d", time.localtime(time.time() - 18000))
+        file_name = f'{date}.json'
+        if os.path.isfile(f'./resources/{file_name}'):
+            with open(os.path.join(PATH, f'resources/{file_name}'), "r") as f:
+                self.stock_list = json.load(f)
+        
+        else:
+            self.stock_list = {
+                "stocks": {
+                    "SN": {
+                        "symbol": "SN",
+                        "stock_count": 116,
+                        "currency": "USD",
+                        "price": 0,
+                        "value": 0
+                    },
+                    'value': 0
+                },
+                "currency": {
+                    "USD": 0,
+                    "AUD": 0,
+                    "GBP": 1
+                }
+            }
+
+            self.get_currency_conversion()
+            print(f"Stock list: {self.stock_list}")
+            for stock in self.stock_list['stocks']:
+                if stock != 'value':
+                    print(f"Getting stock price for {stock}")
+                    try:
+                        self.get_stock_price(stock)
+                        self.stock_list['stocks']['value'] += self.stock_list['stocks'][stock]['value']
+                    except Exception as e:
+                        print(f"Error: {e}")
+
+            json_file = json.dumps(self.stock_list)
+        
+            with open(os.path.join(PATH, f'resources/{file_name}'), "w") as f:
+                f.write(json_file)
+
+    def get_currency_conversion(self):
+        global USD_to_GBP
+        self.currency_url = f"{self.CURRENCY_URL}{self.CURRENCY_API_KEY}"
+        print(f"Currency conversion URL: {self.currency_url}")
+        self.response = requests.get(self.currency_url, timeout=3, verify=True).json()
+        print(f"Currency conversion: {self.response}")
+        self.stock_list['currency']['USD'] = self.response['rates']['GBP']/self.response['rates']['USD']
+        USD_to_GBP = self.stock_list['currency']['USD']
+        self.stock_list['currency']['AUD'] = self.response['rates']['AUD']/self.response['rates']['GBP']
+        self.stock_list['currency']['GBP'] = self.response['rates']['GBP']/self.response['rates']['GBP']
+        print(f"Currency conversion: {self.stock_list['currency']}")
+
+    def get_stock_price(self, stock):
+        self.stock_url = f"{self.ALPHA_VANTAGE_URL}{self.stock_list['stocks'][stock]['symbol']}&apikey={self.ALPHA_VANTAGE_API_KEY}"
+        self.response = requests.get(self.stock_url, timeout=3, verify=True).json()
+        print(self.response)
+        last_refreshed = self.response['Meta Data']['3. Last Refreshed']
+        self.stock_list['stocks'][stock]['price'] = float(self.response['Time Series (Daily)'][last_refreshed]['4. close'])
+        self.stock_list['stocks'][stock]['value'] = float(self.stock_list['stocks'][stock]['price']) * float(self.stock_list['stocks'][stock]['stock_count']) * float(self.stock_list['currency'][self.stock_list['stocks'][stock]['currency']])
+        self.stock_list['stocks'][stock]['value'] = int(self.stock_list['stocks'][stock]['value'])
+        print(f"Stock {self.stock_list['stocks'][stock]['symbol']} has a price of {self.stock_list['stocks'][stock]['price']} and a value of {self.stock_list['stocks'][stock]['value']} USD")
 
 class IconomiWallet:
     # Grab secret key from .env file
@@ -163,6 +264,8 @@ class IconomiWallet:
         self.s = requests.Session()
 
     def request_iconomi_balance(self):
+        print(f"Requesting Iconomi balance from {self.iconomi_url}")
+        print(f'Headers {self.headers}')
         self.response = self.s.get(
             self.iconomi_url,
             headers=self.headers,
@@ -177,6 +280,9 @@ class IconomiWallet:
         self.create_session()
 
         self.request_iconomi_balance()
+        print(
+            f"Requesting Iconomi balance with status code: {self.response.status_code}"
+        )
 
         if self.response.status_code == HTTP_OK:
             self.wallet = self.response.json()
@@ -188,7 +294,15 @@ class IconomiWallet:
             for asset in self.wallet['assetList']:
                 self.wallet['balance'] += float(asset["value"])
 
-            self.wallet['balance'] = int(self.wallet['balance'])
+            self.wallet['balance'] = int(float(self.wallet['balance']) * USD_to_GBP)
+        else:
+            print(f"Error: {self.response.status_code}")
+            self.wallet = {
+                "balance": 1,
+                "daaList": [],
+                "assetList": []
+            }
+
         
         # return self.wallet.balance
 
@@ -234,37 +348,43 @@ class PodcastStats:
 
     def __init__(self):
         self.get_op3_stats()
-        self.get_download_split()
+        if self.response != 1:
+            self.get_download_split()
 
     def get_op3_stats(self):
-        self.response = requests.get(self.op3_url, timeout=3, verify=True).json()
-        print(f'Looking up stats for {self.response["title"]}')
-        continuationToken = 0
-        continuationFlag = True
         self.total_downloads = 0
-        self.op3_downloads = "https://op3.dev/api/1/downloads/show/"
-        while continuationFlag:
-            extra = ''
-            if continuationToken != 0:
-                extra = '&continuationToken=' + str(continuationToken) + "&format=json"
-            else:
-                extra = "&format=json"
-        
-            self.op3_downloads += self.response["showUuid"] + "?token=" + os.getenv("OP3_BEARER_TOKEN") + extra
-            self.stats = requests.get(self.op3_downloads , timeout=10, verify=True).json()
-            if 'count' in self.stats.keys():
-                self.total_downloads += self.stats['count']
-                if 'continuationToken' in self.stats.keys():
-                    print(f'Continuation token: {self.stats["continuationToken"]} with {self.stats["count"]} downloads')
-                    continuationToken = self.stats['continuationToken']
+        if os.getenv('PODCAST_REQUEST') == 'true':
+            self.response = requests.get(self.op3_url, timeout=3, verify=True).json()
+            print(f'Looking up stats for {self.response["title"]}')
+            continuationToken = 0
+            continuationFlag = True
+            self.total_downloads = 0
+            self.op3_downloads = "https://op3.dev/api/1/downloads/show/"
+            while continuationFlag:
+                extra = ''
+                if continuationToken != 0:
+                    extra = '&continuationToken=' + str(continuationToken) + "&format=json"
                 else:
-                    print('No continuation token with ' + str(self.stats['count']) + ' downloads')
+                    extra = "&format=json"
+            
+                self.op3_downloads += self.response["showUuid"] + "?token=" + os.getenv("OP3_BEARER_TOKEN") + extra
+                self.stats = requests.get(self.op3_downloads , timeout=20, verify=True).json()
+                if 'count' in self.stats.keys():
+                    self.total_downloads += self.stats['count']
+                    if 'continuationToken' in self.stats.keys():
+                        print(f'Continuation token: {self.stats["continuationToken"]} with {self.stats["count"]} downloads')
+                        continuationToken = self.stats['continuationToken']
+                    else:
+                        print('No continuation token with ' + str(self.stats['count']) + ' downloads')
+                        continuationFlag = False
+                else:
                     continuationFlag = False
-            else:
-                continuationFlag = False
-                print('No stats found')
-                print(self.stats.keys())
-                print(self.stats['error'])
+                    print('No stats found')
+                    print(self.stats.keys())
+                    print(self.stats['error'])
+        else:
+            self.response = 1
+            print('Not requesting podcast stats')
 
         # print(f'Rows: {len(self.stats["rows"])}')
 
@@ -286,30 +406,23 @@ class PodcastStats:
         
         for download in reversed(self.stats['rows']):
             download_time = time.mktime(time.strptime(download['time'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-            print(f'Download time: {download_time} Latest episode time: {self.latest_episode_time} Current date: {current_date}')
-
+            
             # If download is within the last week
             if download_time > current_date - 604800:
                 self.week1_downloads += 1
-                print('first test')
                 if download['episodeId'] == self.latest_episode['id']:
-                    print('first test, second level')
                     self.week1_latest_downloads += 1
 
             # If download is within the last two weeks
             elif download_time > current_date-2 * 604800:
-                print('second test')
                 self.week2_downloads += 1
                 if download['episodeId'] == self.latest_episode['id']:
-                    print('second test, second level')
                     self.week2_latest_downloads += 1
 
             # If download is within the last three weeks
             elif download_time > current_date-3 * 604800:
-                print('third test')
                 self.week3_downloads += 1
                 if download['episodeId'] == self.latest_episode['id']:
-                    print('third test, second level')
                     self.week3_latest_downloads += 1
             else:
                 break
@@ -338,8 +451,10 @@ class PodcastStats:
             "username": "Founder's Voyage",
         }
 
+stocks_wallet = StocksWallet()
 iconomi_wallet = IconomiWallet()
 podcast_stats = PodcastStats()
+#FIXME: Move below to daily section to avoid API limit
 display = InkyDisplay()
 # discord_display = InkyDisplay()
 size = (250, 122)
@@ -351,16 +466,12 @@ def create_image():
     draw = ImageDraw.Draw(display.img)
     display.print_number(ICONOMI_NUMBERS_POSITION, iconomi_wallet.wallet['balance'], display.inky_display.YELLOW)
 
-    # Draw pie chart of the two largest Iconomi holdings to see the split
-    draw.pieslice(OUTLINE_PIESLICE, 0, FULL_CIRCLE, fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
-    first_split = round(int(iconomi_wallet.split[0]["value"] / int(iconomi_wallet.split_total) * FULL_CIRCLE))
-    draw.pieslice(FIRST_PIECE_PIESLICE, 0, first_split, fill=display.inky_display.YELLOW)
-    draw.pieslice(SECOND_PIECE_PIESLICE, first_split, FULL_CIRCLE, fill=display.inky_display.WHITE)
+    display.print_number(SHARKNINJA_NUMBERS_POSITION, stocks_wallet.stock_list['stocks']['value'], display.inky_display.YELLOW)
 
     display.print_number(PODCAST_NUMBERS_POSITION, podcast_stats.total_downloads, display.inky_display.YELLOW)
 
     # Draw triangles to show the split of downloads for the last 3 weeks
-    if podcast_stats.week2_downloads == 0:
+    if hasattr(podcast_stats, 'week2_downloads') == False or podcast_stats.week2_downloads == 0:
         podcast_stats.week2_downloads = 1
 
     week1_size = MID_TRIANGLE_SIZE*(math.sqrt(podcast_stats.week1_downloads/podcast_stats.week2_downloads))
@@ -419,9 +530,11 @@ def create_discord_image():
 
 def update_instances():
     iconomi_wallet.get_iconomi_balance()
-    iconomi_wallet.get_iconomi_split()
+    if iconomi_wallet.response.status_code == HTTP_OK:
+        iconomi_wallet.get_iconomi_split()
     podcast_stats.get_op3_stats()
-    podcast_stats.get_download_split()
+    if podcast_stats.response != 1:
+        podcast_stats.get_download_split()
 
 def update_display():
     create_image()
@@ -465,6 +578,7 @@ def main():
             os.path.isfile(yesterday) and os.remove(yesterday)
             # Create log file for today
             open(file_name, 'w+').close()
+
         print(iconomi_wallet.wallet['balance'])
     else:
         print('Environment not set.')

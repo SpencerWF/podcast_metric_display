@@ -1,0 +1,37 @@
+a18389b8a52d4112a782b32f40f73df6
+a514933f8f995dd7be1370504008919c
+
+openapi: "3.1.0",
+info:
+  title: Get Podcast Data
+  description: "An action that allows the user to import their OP3 podcast data to the GPT",
+  version: v1
+servers:
+  - url: https://op3.dev/api/1/
+paths:
+  /shows:
+    get:
+      summary: Retreive Podcast Show Information
+      operationId: getPodcastInfo
+      tags:
+        - podcast
+        - show
+        - information
+        - episodes
+      parameters:
+        - name: uuid
+          in: path
+          description: The identifiying UUID for the particular podcast
+          required: true
+          deprecated: false
+          allowEmptyValue: false
+          schema:
+            type: string
+        - name: episodes
+          in: query
+          description: Whether or not to include episode information as well
+          required: false
+          deprecated: false
+          allowEmptyValue: false
+          schema:
+            type: string

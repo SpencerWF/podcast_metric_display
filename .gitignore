@@ -164,3 +164,6 @@ cython_debug/
 *.xcf
 
 discord_message.*
+
+# Don't keep .json files in the resource folder
+resources/*.json
