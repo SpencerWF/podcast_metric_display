@@ -167,7 +167,8 @@ class StocksWallet:
                     "USD": 0,
                     "AUD": 0,
                     "GBP": 1
-                }
+                },
+                "error": 0
             }
 
             self.get_currency_conversion()
