@@ -192,21 +192,31 @@ class StocksWallet:
         print(f"Currency conversion URL: {self.currency_url}")
         self.response = requests.get(self.currency_url, timeout=3, verify=True).json()
         print(f"Currency conversion: {self.response}")
-        self.stock_list['currency']['USD'] = self.response['rates']['GBP']/self.response['rates']['USD']
-        USD_to_GBP = self.stock_list['currency']['USD']
-        self.stock_list['currency']['AUD'] = self.response['rates']['AUD']/self.response['rates']['GBP']
-        self.stock_list['currency']['GBP'] = self.response['rates']['GBP']/self.response['rates']['GBP']
-        print(f"Currency conversion: {self.stock_list['currency']}")
+        if 'error' in self.response.keys():
+            print(f"Error self.response['error']['code']: {self.response['error']['info']}")
+            self.stock_list['error'] = self.response['error']['code']
+        else:
+            self.stock_list['error'] = 0;
+            self.stock_list['currency']['USD'] = self.response['rates']['GBP']/self.response['rates']['USD']
+            USD_to_GBP = self.stock_list['currency']['USD']
+            self.stock_list['currency']['AUD'] = self.response['rates']['AUD']/self.response['rates']['GBP']
+            self.stock_list['currency']['GBP'] = self.response['rates']['GBP']/self.response['rates']['GBP']
+            print(f"Currency conversion: {self.stock_list['currency']}")
 
     def get_stock_price(self, stock):
-        self.stock_url = f"{self.ALPHA_VANTAGE_URL}{self.stock_list['stocks'][stock]['symbol']}&apikey={self.ALPHA_VANTAGE_API_KEY}"
-        self.response = requests.get(self.stock_url, timeout=3, verify=True).json()
-        print(self.response)
-        last_refreshed = self.response['Meta Data']['3. Last Refreshed']
-        self.stock_list['stocks'][stock]['price'] = float(self.response['Time Series (Daily)'][last_refreshed]['4. close'])
-        self.stock_list['stocks'][stock]['value'] = float(self.stock_list['stocks'][stock]['price']) * float(self.stock_list['stocks'][stock]['stock_count']) * float(self.stock_list['currency'][self.stock_list['stocks'][stock]['currency']])
-        self.stock_list['stocks'][stock]['value'] = int(self.stock_list['stocks'][stock]['value'])
-        print(f"Stock {self.stock_list['stocks'][stock]['symbol']} has a price of {self.stock_list['stocks'][stock]['price']} and a value of {self.stock_list['stocks'][stock]['value']} USD")
+        if self.response['error']['code'] == 0:
+            self.stock_url = f"{self.ALPHA_VANTAGE_URL}{self.stock_list['stocks'][stock]['symbol']}&apikey={self.ALPHA_VANTAGE_API_KEY}"
+            self.response = requests.get(self.stock_url, timeout=3, verify=True).json()
+            print(self.response)
+            last_refreshed = self.response['Meta Data']['3. Last Refreshed']
+            self.stock_list['stocks'][stock]['price'] = float(self.response['Time Series (Daily)'][last_refreshed]['4. close'])
+            self.stock_list['stocks'][stock]['value'] = float(self.stock_list['stocks'][stock]['price']) * float(self.stock_list['stocks'][stock]['stock_count']) * float(self.stock_list['currency'][self.stock_list['stocks'][stock]['currency']])
+            self.stock_list['stocks'][stock]['value'] = int(self.stock_list['stocks'][stock]['value'])
+            print(f"Stock {self.stock_list['stocks'][stock]['symbol']} has a price of {self.stock_list['stocks'][stock]['price']} and a value of {self.stock_list['stocks'][stock]['value']} USD")
+        elif self.response['error']['code'] == 104:
+            print("API limit reached")
+        else:
+            print("Unknown Error")
 
 class IconomiWallet:
     # Grab secret key from .env file
