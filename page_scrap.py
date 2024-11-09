@@ -215,7 +215,7 @@ class StocksWallet:
             self.stock_list['stocks'][stock]['price'] = float(self.response['Time Series (Daily)'][last_refreshed]['4. close'])
             self.stock_list['stocks'][stock]['value'] = float(self.stock_list['stocks'][stock]['price']) * float(self.stock_list['stocks'][stock]['stock_count']) * float(self.stock_list['currency'][self.stock_list['stocks'][stock]['currency']])
             self.stock_list['stocks'][stock]['value'] = int(self.stock_list['stocks'][stock]['value'])
-            print(f"Stock {self.stock_list['stocks'][stock]['symbol']} has a price of {self.stock_list['stocks'][stock]['price']} and a value of {self.stock_list['stocks'][stock]['value']} USD")
+            print(f"Stock {self.stock_list['stocks'][stock]['symbol']} has a price of {self.stock_list['stocks'][stock]['price']} and a value of {self.stock_list['stocks'][stock]['value']} GBP")
         elif self.response['error']['code'] == 104:
             print("API limit reached")
         else:
