@@ -586,9 +586,9 @@ def main():
             # Get yesterday's date
             yesterday = time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))
             # Delete yesterday's log file
-            os.path.isfile(yesterday) and os.remove(yesterday)
+            os.path.isfile(f'./resources/{yesterday}') and os.remove(f'./resources/{yesterday}')
             # Create log file for today
-            open(file_name, 'w+').close()
+            # open(file_name, 'w+').close()
 
         print(iconomi_wallet.wallet['balance'])
     else:
