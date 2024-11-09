@@ -167,4 +167,4 @@ discord_message.*
 
 # Don't keep .json files in the resource folder
 resources/*.json
-resources/discord_message.json
+resources/discord_message.png
