@@ -175,12 +175,12 @@ class StocksWallet:
             print(f"Stock list: {self.stock_list}")
             for stock in self.stock_list['stocks']:
                 if stock != 'value':
-                    print(f"Getting stock price for {stock}")
                     try:
                         self.get_stock_price(stock)
                         self.stock_list['stocks']['value'] += self.stock_list['stocks'][stock]['value']
                     except Exception as e:
-                        print(f"Error: {e}")
+                        print(f"Fixer Request Error: {e}")
+                        print(f"Unpack: {e.args}")
 
             json_file = json.dumps(self.stock_list)
         
@@ -194,7 +194,7 @@ class StocksWallet:
         self.response = requests.get(self.currency_url, timeout=3, verify=True).json()
         print(f"Currency conversion: {self.response}")
         if 'error' in self.response.keys():
-            print(f"Error self.response['error']['code']: {self.response['error']['info']}")
+            print(f"Get Currency Conversion Error: self.response['error']['code']: {self.response['error']['info']}")
             self.stock_list['error'] = self.response['error']['code']
         else:
             self.stock_list['error'] = 0;
@@ -205,8 +205,10 @@ class StocksWallet:
             print(f"Currency conversion: {self.stock_list['currency']}")
 
     def get_stock_price(self, stock):
-        if self.response['error']['code'] == 0:
+        print(f"Calling Get Stock Price")
+        if not 'error' in self.response.keys() or not 'code' in self.response['error'].keys() or self.response['error']['code'] == 0:
             self.stock_url = f"{self.ALPHA_VANTAGE_URL}{self.stock_list['stocks'][stock]['symbol']}&apikey={self.ALPHA_VANTAGE_API_KEY}"
+            print(f"Stock URL: {self.stock_url}")
             self.response = requests.get(self.stock_url, timeout=3, verify=True).json()
             print(self.response)
             last_refreshed = self.response['Meta Data']['3. Last Refreshed']
@@ -307,7 +309,7 @@ class IconomiWallet:
 
             self.wallet['balance'] = int(float(self.wallet['balance']) * USD_to_GBP)
         else:
-            print(f"Error: {self.response.status_code}")
+            print(f"Iconomi Balance Error: {self.response.status_code}")
             self.wallet = {
                 "balance": 1,
                 "daaList": [],
@@ -534,10 +536,6 @@ def create_discord_image():
     draw.polygon([(FIRST_TRIANGLE_START + week3_size - week3_latest_size, 70), (FIRST_TRIANGLE_START + week3_size, 70), (FIRST_TRIANGLE_START + week3_size, 70 - week3_latest_size)], fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
 
     discord_img.save(os.path.join(PATH, "resources/discord_message.png"))
-    # draw.rectangle((100, 82, 130, 97), fill=display.inky_display.BLACK, outline=display.inky_display.BLACK)
-    # draw.rectangle((101, 83, 101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 96), fill=display.inky_display.YELLOW, outline=display.inky_display.YELLOW)
-    # draw.rectangle((101+30*podcast_stats.latest_downloads/podcast_stats.total_downloads, 83, 129, 96), fill=display.inky_display.WHITE, outline=display.inky_display.WHITE)
-
 
 def update_instances():
     iconomi_wallet.get_iconomi_balance()
