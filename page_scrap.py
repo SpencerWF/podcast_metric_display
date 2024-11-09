@@ -580,7 +580,7 @@ def main():
         update_display()
         date = time.strftime("%Y-%m-%d", time.localtime(time.time() - 18000))
         file_name = f'{date}.log'
-        if os.getenv("DISCORD_WEBHOOK") and not os.path.isfile(file_name):
+        if os.getenv("DISCORD_WEBHOOK") and not os.path.isfile(f'./resources/{file_name}'):
             print("Sending discord update")
             discord_update()
             # Get yesterday's date
